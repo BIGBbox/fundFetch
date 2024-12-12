@@ -100,12 +100,13 @@ export function fillString(
   length: number,
   left = true
 ): string {
-  let rest = source
-  while (stringWidth(rest) >= length) {
-    rest = rest.slice(0, rest.length - 1)
-  }
-  const addString = '  '.repeat(length - stringWidth(rest))
-  return left ? `${rest}${addString}` : `${addString}${rest}`
+  // const strWidth = stringWidth(source); 
+  // if (strWidth >= length) {
+  //   return source.slice(0, length); 
+  // }
+  // const padding = '0'.repeat(length - strWidth); 
+  // return source + padding; 
+  return `${source}   `
 }
 
 export function unique(arr: any[]) {
