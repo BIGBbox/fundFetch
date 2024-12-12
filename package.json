@@ -3,10 +3,10 @@
   "displayName": "fundWatch",
   "description": "查看基金实时涨幅",
   "version": "0.0.1",
-  "author": "shenfq",
-  "publisher": "shenfq",
+  "author": "BIGBbox",
+  "publisher": "BIGBbox",
   "license": "MIT",
-  "repository": "https://github.com/Shenfq/fund-watch.git",
+  "repository": "https://github.com/BIGBbox/fundFetch.git",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -23,8 +23,8 @@
         "fund-watch.favorites": {
           "type": "array",
           "default": [
-            "163407",
-            "161017"
+            "000043",
+            "008888"
           ],
           "description": "自选基金列表，值为基金代码"
         },
