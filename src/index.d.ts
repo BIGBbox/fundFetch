@@ -5,4 +5,6 @@ interface FundInfo {
   lastClose: string
   changeRate: string
   changeAmount: string
+  updateTime: string
+  updateTimeWithMins?: string
 }

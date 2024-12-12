@@ -1,5 +1,5 @@
 import { TreeItem } from 'vscode'
-import { fillString } from '../utils'
+import { fillString, fundNameSimp } from '../utils'
 
 export default class FundItem extends TreeItem {
   info: FundInfo
@@ -8,9 +8,10 @@ export default class FundItem extends TreeItem {
     const rate = Number(info.changeRate)
     const icon = rate >= 0 ? '📈' : '📉'
     const prev = rate >= 0 ? '+' : '-'
-    const rage = `${prev}${Math.abs(rate)}%`
-    const name = fillString(info.name, 25)
-    super(`${icon}${name}${rage}`)
+    const rage = fillString(`${prev}${Math.abs(rate).toFixed(2)}%`, 10)
+    const name = fundNameSimp(info.name)
+    let time = info.updateTime ? `(${info.updateTime})` :''
+    super(`${icon}${time}${rage}${name}`)
 
     let sliceName = info.name
     if (sliceName.length > 8) {

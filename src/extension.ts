@@ -50,6 +50,9 @@ export function activate(context: vscode.ExtensionContext) {
 		if (e.affectsConfiguration('fund-watch.interval')) {
 			setupInterval();
 		}
+		if (e.affectsConfiguration('fund-watch.showUpdateTime')) {
+			provider.refresh()
+		}
 	});
 
 	// 定时任务
@@ -77,4 +80,4 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() {
 	clearInterval(interval);
- }
+}

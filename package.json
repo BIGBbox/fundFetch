@@ -2,7 +2,7 @@
   "name": "fundwatch",
   "displayName": "fundWatch",
   "description": "查看基金实时涨幅",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "BIGBbox",
   "publisher": "BIGBbox",
   "license": "MIT",
@@ -32,6 +32,11 @@
           "type": "number",
           "default": 2,
           "description": "刷新时间，单位为秒，默认 2 秒"
+        },
+         "fund-watch.showUpdateTime": {
+          "type": "number",
+          "default": 0,
+          "description": "是否显示当涨跌幅更新时间(0:不显示时间,1:显示年-月-日,2:显示年-月-日 时:分 )"
         }
       }
     },
