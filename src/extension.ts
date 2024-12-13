@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import { commands, window, workspace } from 'vscode';
 import Provider from './data/Provider';
-import fundHandle from './data/Handle';
+import { fundHandle } from './data/Handle';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -28,6 +28,7 @@ function setupInterval() {
 	}
 
 	interval = setInterval(() => {
+		fundHandle.getFavorites()
 		provider.refresh();
 	}, intervalTime * 1000);
 }
@@ -73,6 +74,10 @@ export function activate(context: vscode.ExtensionContext) {
 			const { code } = fund
 			fundHandle.removeConfig(code)
 			provider.refresh()
+		}),
+		commands.registerCommand('fund.item.click', (fund) => {
+			// const { code } = fund
+			console.log('click item', fund)
 		})
 	)
 }

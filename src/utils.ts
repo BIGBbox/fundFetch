@@ -83,11 +83,9 @@ export async function fundApi(fundConfig: string[]): Promise<FundInfo[]> {
     }
   });
 
-  // 等待所有异步任务完成
   await Promise.all(promises);
   let time = new Date()
-  console.log('results', results, `time:${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`)
-  // 返回最终结果
+  // console.log('results', results, `time:${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`)
   return results;
 }
 

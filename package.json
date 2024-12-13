@@ -33,7 +33,7 @@
           "default": 2,
           "description": "刷新时间，单位为秒，默认 2 秒"
         },
-         "fund-watch.showUpdateTime": {
+        "fund-watch.showUpdateTime": {
           "type": "number",
           "default": 0,
           "description": "是否显示当涨跌幅更新时间(0:不显示时间,1:显示年-月-日,2:显示年-月-日 时:分 )"
@@ -68,6 +68,10 @@
       {
         "command": "fund.item.remove",
         "title": "删除"
+      },
+      {
+        "command": "fund.item.click",
+        "title": "点击"
       }
     ],
     "menus": {
