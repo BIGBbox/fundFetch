@@ -8,6 +8,7 @@ import { FundSplitwords, ShowTimeType } from './data/enum';
 const url1 = 'https://fund.10jqka.com.cn/guzhi/chart/v1?module=api&controller=index&action=chartByTradeCode&code={fundCode}&start=0930'
 const url2 = 'https://fund.10jqka.com.cn/quotation/fund_detail/v2/base/{fundCode}'
 const url3 = 'https://fund.10jqka.com.cn/quotation/fund_detail/get?fundCode={fundCode}'
+const url4 = 'https://d.10jqka.com.cn/v4/time/zs_{fundCode}/last.js'
 
 // 请求
 const request = async (url: string): Promise<string> => {
@@ -83,12 +84,44 @@ export async function fundApi(fundConfig: string[]): Promise<FundInfo[]> {
     }
   });
 
-  await Promise.all(promises);
-  let time = new Date()
+  await Promise.allSettled(promises);
+  // let time = new Date()
   // console.log('results', results, `time:${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`)
   return results;
 }
 
+export async function indexApi(fundConfig: string[]): Promise<FundInfo[]> {
+  const results: FundInfo[] = []; // 用于存储所有 fundCode 的最终结果
+  const promises = fundConfig.map(async (fundCode) => {
+    const replacedUrl4 = url4.replace('{fundCode}', fundCode);
+    const rspStr = await request(replacedUrl4);
+    try {
+      let s = ""
+      s.slice()
+      const str = rspStr.replace(/.*?\((.*?)\)/, "$1");
+      const obj = JSON.parse(str)
+      if (obj) {
+        let info = obj[`zs_${fundCode}`];
+        const data_now = info.data.split(";").pop().split(",");
+        const formattedDate = `${info.dates[0].slice(0, 4)}-${info.dates[0].slice(4, 6)}-${info.dates[0].slice(6)}`;
+        results.push({
+          now: data_now[1],
+          name: info.name,
+          code: fundCode,
+          lastClose: info.pre,
+          changeRate: `${((data_now[1] - info.pre) / info.pre) * 100}`,
+          changeAmount: `${data_now[1] - info.pre}`,
+          updateTime: getUpdateTimeWithMins(formattedDate, data_now[0]),
+        });
+      }
+    } catch (error) {
+      console.error(`Error fetching indexCode ${fundCode}:`, error);
+
+    }
+  })
+  await Promise.allSettled(promises);
+  return results;
+}
 
 /**
  * 字符串长度拼接

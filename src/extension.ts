@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { commands, window, workspace } from 'vscode';
-import Provider from './data/Provider';
+import Provider, { tagItem } from './data/Provider';
 import { fundHandle } from './data/Handle';
 
 // This method is called when your extension is activated
@@ -28,14 +28,14 @@ function setupInterval() {
 	}
 
 	interval = setInterval(() => {
-		fundHandle.getFavorites()
+		fundHandle.updateData()
 		provider.refresh();
 	}, intervalTime * 1000);
 }
 
 export function activate(context: vscode.ExtensionContext) {
 
-
+	fundHandle.extensionPath = context.extensionPath;
 	let intervalTime = workspace.getConfiguration().get('fund-watch.interval', 2)
 	if (intervalTime < 2) {
 		intervalTime = 2
@@ -56,13 +56,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	fundHandle.updateData()
 	// 定时任务
 	setupInterval();
 
 	// menu 事件
 	context.subscriptions.push(
-		commands.registerCommand(`fund.add`, () => {
-			provider.addFund()
+		commands.registerCommand(`fund.add`, (item: tagItem) => {
+			provider.addFund(item.contextValue ?? "")
 		}),
 		commands.registerCommand(`fund.order`, () => {
 			provider.changeOrder()
@@ -70,9 +71,8 @@ export function activate(context: vscode.ExtensionContext) {
 		commands.registerCommand(`fund.refresh`, () => {
 			provider.refresh()
 		}),
-		commands.registerCommand('fund.item.remove', (fund) => {
-			const { code } = fund
-			fundHandle.removeConfig(code)
+		commands.registerCommand('fund.item.remove', (item: tagItem) => {
+			fundHandle.removeConfig(item.info.code)
 			provider.refresh()
 		}),
 		commands.registerCommand('fund.item.click', (fund) => {
@@ -86,3 +86,24 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
 	clearInterval(interval);
 }
+
+
+/**
+    "fund-watch.favoriteFunds":[
+        "000043",
+        "161128",
+        "160632",
+        "017436",
+        "001593",
+        "014855",
+        "501312",
+        "008888"
+    ],
+    "fund-watch.interval":5,
+    "fund-watch.showUpdateTime": 0,
+    "fund-watch.favoriteIndexs": [
+        "1A0001",
+        "399001",
+        "399006"
+    ]
+ */

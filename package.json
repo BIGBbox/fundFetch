@@ -1,8 +1,8 @@
 {
   "name": "fundwatch",
   "displayName": "fundWatch",
-  "description": "查看基金实时涨幅",
-  "version": "0.0.2",
+  "description": "查看基金/指数实时涨跌幅",
+  "version": "0.0.3",
   "author": "BIGBbox",
   "publisher": "BIGBbox",
   "license": "MIT",
@@ -20,13 +20,21 @@
       "type": "object",
       "title": "fundWatch",
       "properties": {
-        "fund-watch.favorites": {
+        "fund-watch.favoriteFunds": {
           "type": "array",
           "default": [
             "000043",
             "008888"
           ],
           "description": "自选基金列表，值为基金代码"
+        },
+        "fund-watch.favoriteIndexs": {
+          "type": "array",
+          "default": [
+            "1A0001",
+            "399001"
+          ],
+          "description": "自选指数列表，值为指数代码"
         },
         "fund-watch.interval": {
           "type": "number",
@@ -77,11 +85,6 @@
     "menus": {
       "view/title": [
         {
-          "command": "fund.add",
-          "when": "view == fund-list",
-          "group": "navigation"
-        },
-        {
           "command": "fund.order",
           "when": "view == fund-list",
           "group": "navigation"
@@ -95,7 +98,12 @@
       "view/item/context": [
         {
           "command": "fund.item.remove",
-          "when": "view == fund-list",
+          "when": "view == fund-list && !viewItem",
+          "group": "inline"
+        },
+        {
+          "command": "fund.add",
+          "when": "view == fund-list && (viewItem == FUND || viewItem == INDEX)",
           "group": "inline"
         }
       ]

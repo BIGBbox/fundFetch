@@ -1,6 +1,8 @@
-import { TreeItem, TreeItemCollapsibleState } from 'vscode'
+import { TreeItem, TreeItemCollapsibleState, ExtensionContext, Uri } from 'vscode'
 import { fillString, fundNameSimp } from '../utils'
-
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { fundHandle } from './Handle';
 export default class FundItem extends TreeItem {
   info: FundInfo | undefined
 
@@ -10,12 +12,24 @@ export default class FundItem extends TreeItem {
       return
     }
     const rate = Number(info.changeRate)
-    const icon = rate >= 0 ? '📈' : '📉'
-    const prev = rate >= 0 ? '+' : '-'
+    // const icon = rate >= 0 ? '📈' : '📉'
+    let icon = "up2"
+    if (rate >= 1.5) {
+      icon = "up2";
+    } else if (rate > 0 && rate < 1.5) {
+      icon = "up";
+    } else if (rate <= -1.5) {
+      icon = "down2";
+    } else if (rate < 0 && rate > -1.5) {
+      icon = "down";
+    }
+    const prev = Math.abs(rate) >= 0 ? '' : ''
     const rage = fillString(`${prev}${Math.abs(rate).toFixed(2)}%`, 10)
     const name = fundNameSimp(info.name)
     let time = info.updateTime ? `(${info.updateTime})` : ''
-    super(`${icon}${time}${rage}${name}`)
+    super(`${time}  ${rage}${name}`)
+    this.iconPath = Uri.file(path.join(fundHandle.extensionPath, '', 'images', `${icon}.svg`));
+
 
     let sliceName = info.name
     if (sliceName.length > 8) {

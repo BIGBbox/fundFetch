@@ -3,12 +3,22 @@ import { window, Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollap
 // import fundHandle from './Handle'
 // eslint-disable-next-line no-unused-vars
 import FundItem from './TreeItem'
-import { fundApi } from '../utils'
+import { fundApi, indexApi } from '../utils'
 import { fundHandle } from './Handle'
 
-enum ItemType {
-  FUND = "基金",
-  INDEX = '指数'
+const ItemTypeMap: any = {
+  FUND: "基金",
+  INDEX: '指数'
+}
+
+const ItemTypeEng: any = {
+  '基金': "FUND",
+  '指数': 'INDEX'
+}
+
+export enum ItemType {
+  FUND = "FUND",
+  INDEX = 'INDEX'
 }
 
 export default class DataProvider implements TreeDataProvider<FundItem> {
@@ -17,7 +27,7 @@ export default class DataProvider implements TreeDataProvider<FundItem> {
   readonly onDidChangeTreeData: Event<FundItem | null> = this.refreshEvent.event
 
   private order: number;
-  private tagList = [ItemType.FUND, ItemType.INDEX];
+  private tagList = [ItemTypeMap.FUND, ItemTypeMap.INDEX];
   private showState: any = {};
 
 
@@ -35,14 +45,12 @@ export default class DataProvider implements TreeDataProvider<FundItem> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  getTreeItem(info: any): any {
+  getTreeItem(info: tagItem): tagItem {
     // return new FundItem(info)
     return info
   }
 
   getChildren(element?: any): Promise<FundItem[]> {
-    const { order } = this
-    console.log('element', order)
     let info: any;
     let elementList: FundItem[] = []
 
@@ -56,21 +64,12 @@ export default class DataProvider implements TreeDataProvider<FundItem> {
         return
       }
 
-      switch (element.tag) {
+      switch (element.contextValue) {
         case ItemType.FUND:
-          this.showState[ItemType.FUND] = 1
-          fundHandle.info.sort(({ changeRate: a = 0 }, { changeRate: b = 0 }) => {
-            return (+a >= +b ? -1 : 1) * this.order
-          })
-          for (let i = 0; i < fundHandle.info.length; i++) {
-            elementList.push(new tagItem(ItemType.FUND, fundHandle.info[i]))
-          }
+          this.getData(elementList, ItemType.FUND)
           break;
         case ItemType.INDEX:
-          this.showState[ItemType.INDEX] = 1
-          for (let i = 0; i < 2; i++) {
-            elementList.push(new tagItem(`${ItemType.INDEX}__${i}`, info))
-          }
+          this.getData(elementList, ItemType.INDEX)
           break;
       }
       res(elementList);
@@ -82,48 +81,79 @@ export default class DataProvider implements TreeDataProvider<FundItem> {
     this.refresh()
   }
 
-  async addFund() {
+  async addFund(type: string) {
     const res = await window.showInputBox({
       value: '',
       valueSelection: [5, -1],
-      prompt: '添加基金到自选',
-      placeHolder: 'Add Fund To Favorite',
+      prompt: `添加${ItemTypeMap[type]}到自选'`,
+      placeHolder: `Add ${type} To Favorite`,
       validateInput: (inputCode: string) => {
-        const codeArray = inputCode.split(/[\W]/)
-        const hasError = codeArray.some((code) => {
-          return code !== '' && !/^\d+$/.test(code)
-        })
-        return hasError ? '基金代码输入有误' : null
+        // const codeArray = inputCode.split(/[\W]/)
+        // const hasError = codeArray.some((code) => {
+        //   return code !== '' && !/^\d+$/.test(code)
+        // })
+        return !inputCode ? '基金代码输入有误' : null
       },
     })
 
     if (res !== undefined) {
-      const codeArray = res.split(/[\W]/) || []
-      const newFunds: string[] = [...codeArray]
-      const result = await fundApi(newFunds)
+      const newFunds: string[] = [res]
+      let result: FundInfo[] = []
+      switch (type) {
+        case ItemType.FUND:
+          result = await fundApi(newFunds)
+          break;
+        case ItemType.INDEX:
+          result = await indexApi(newFunds)
+          break;
+      }
       if (result && result.length > 0) {
         // 只更新能正常请求的代码
         const codes = result.map((i: { code: any }) => i.code)
-        fundHandle.updateConfig(codes)
+        fundHandle.updateConfig(codes, type)
         this.refresh()
       } else {
         window.showWarningMessage('stocks not found')
       }
     }
   }
+
+  private getData(elementList: FundItem[], type: string) {
+    this.showState[type] = 1
+    let result: FundInfo[] = []
+    switch (type) {
+      case ItemType.FUND:
+        result = fundHandle.fundInfo
+        break;
+      case ItemType.INDEX:
+        result = fundHandle.indexInfo
+        break;
+    }
+    result.sort((a: FundInfo, b: FundInfo) => {
+      const timeDifference = new Date(a.updateTime.split(" ")[0]).getTime() - new Date(b.updateTime.split(" ")[0]).getTime();
+      if (timeDifference !== 0) {
+        return timeDifference * -1;
+      }
+      return (+a.changeRate - +b.changeRate) * this.order;
+    })
+    for (let i = 0; i < result.length; i++) {
+      elementList.push(new tagItem("", result[i]))
+    }
+  }
 }
 
-class tagItem extends FundItem {
+export class tagItem extends FundItem {
   constructor(
     public readonly tag: string,
     public readonly info: FundInfo,
     public readonly collapsibleState: TreeItemCollapsibleState = TreeItemCollapsibleState.None
   ) {
     super(info, tag, collapsibleState);
+    this.contextValue = ItemTypeEng[tag] ?? ""
     this.command = {
       command: 'fund.item.click',
       title: 'click Item',
-      arguments: [tag],
+      arguments: [ItemTypeEng[tag]],
     };
   }
 }
