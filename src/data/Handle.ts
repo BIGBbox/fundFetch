@@ -58,9 +58,10 @@ export class fundHandle {
     return this.indexInfo
   }
 
-  static async updateData() {
+  static async updateData(cb?:Function) {
     this.updateFavoriteFunds()
     this.updateFavoriteIndexs()
+    cb && cb()
   }
 
   private static getCfgKey(type: string) {

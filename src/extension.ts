@@ -40,8 +40,13 @@ export function activate(context: vscode.ExtensionContext) {
 	if (intervalTime < 2) {
 		intervalTime = 2
 	}
-	// 基金类
-	provider = new Provider()
+
+	fundHandle.updateData(() => {
+		// 基金类
+		provider = new Provider()
+	})
+
+
 
 	// 数据注册
 	window.registerTreeDataProvider('fund-list', provider)
@@ -56,7 +61,6 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	fundHandle.updateData()
 	// 定时任务
 	setupInterval();
 
@@ -89,21 +93,21 @@ export function deactivate() {
 
 
 /**
-    "fund-watch.favoriteFunds":[
-        "000043",
-        "161128",
-        "160632",
-        "017436",
-        "001593",
-        "014855",
-        "501312",
-        "008888"
-    ],
-    "fund-watch.interval":5,
-    "fund-watch.showUpdateTime": 0,
-    "fund-watch.favoriteIndexs": [
-        "1A0001",
-        "399001",
-        "399006"
-    ]
+	"fund-watch.favoriteFunds":[
+		"000043",
+		"161128",
+		"160632",
+		"017436",
+		"001593",
+		"014855",
+		"501312",
+		"008888"
+	],
+	"fund-watch.interval":5,
+	"fund-watch.showUpdateTime": 0,
+	"fund-watch.favoriteIndexs": [
+		"1A0001",
+		"399001",
+		"399006"
+	]
  */

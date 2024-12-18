@@ -109,8 +109,8 @@ export async function indexApi(fundConfig: string[]): Promise<FundInfo[]> {
           name: info.name,
           code: fundCode,
           lastClose: info.pre,
-          changeRate: `${((data_now[1] - info.pre) / info.pre) * 100}`,
-          changeAmount: `${data_now[1] - info.pre}`,
+          changeRate: `${(((data_now[1] - info.pre) / info.pre) * 100).toFixed(4)}`,
+          changeAmount: `${(data_now[1] - info.pre).toFixed(4)}`,
           updateTime: getUpdateTimeWithMins(formattedDate, data_now[0]),
         });
       }
