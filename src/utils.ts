@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
 import * as https from 'https'
 
-import stringWidth from 'string-width';
 import { FundSplitwords, ShowTimeType } from './data/enum';
-// import * as stringWidth from 'string-width'
 
 const url1 = 'https://fund.10jqka.com.cn/guzhi/chart/v1?module=api&controller=index&action=chartByTradeCode&code={fundCode}&start=0930'
 const url2 = 'https://fund.10jqka.com.cn/quotation/fund_detail/v2/base/{fundCode}'
@@ -134,7 +132,7 @@ export function fillString(
   length: number,
   left = true
 ): string {
-  const strWidth = stringWidth(source);
+  const strWidth = source.length;
   if (strWidth >= length) {
     return source.slice(0, length);
   }

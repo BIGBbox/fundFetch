@@ -2,13 +2,13 @@
   "name": "fundwatch",
   "displayName": "fundWatch",
   "description": "查看基金/指数实时涨跌幅",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "BIGBbox",
   "publisher": "BIGBbox",
   "license": "MIT",
   "repository": "https://github.com/BIGBbox/fundFetch.git",
   "engines": {
-    "vscode": ">=1.75.0"
+    "vscode": ">=1.41.0"
   },
   "categories": [
     "Other"
@@ -127,8 +127,9 @@
     }
   },
   "scripts": {
-    "build": "npx tsc",
-    "watch": "tsc -watch -p ./",
+    "build": "webpack --mode production",
+    "watch": "webpack --watch",
+    "package": "vsce package",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "pretest": "npm run compile && npm run lint",
@@ -138,7 +139,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "@types/vscode": "^1.75.0",
+    "@types/vscode": "^1.41.0",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
     "@vscode/test-cli": "^0.0.10",
@@ -151,7 +152,6 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
-    "string-width": "^4.2.0",
     "vsce": "^2.15.0"
   }
 }
