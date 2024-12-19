@@ -1,8 +1,9 @@
 import { TreeItem, TreeItemCollapsibleState, ExtensionContext, Uri } from 'vscode'
-import { fillString, fundNameSimp } from '../utils'
+import { fillString, fundNameSimp, getTimeStr } from '../utils'
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { fundHandle } from './Handle';
+import { ShowTimeType } from './enum';
 export default class FundItem extends TreeItem {
   info: FundInfo | undefined
 
@@ -26,7 +27,7 @@ export default class FundItem extends TreeItem {
     const prev = Math.abs(rate) >= 0 ? '' : ''
     const rage = fillString(`${prev}${Math.abs(rate).toFixed(2)}%`, 10)
     const name = fundNameSimp(info.name)
-    let time = info.updateTime ? `(${info.updateTime})` : ''
+    let time = getTimeStr(info.updateTime)
     super(`${time}  ${rage}${name}`)
     this.iconPath = Uri.file(path.join(fundHandle.extensionPath, '', 'images', `${icon}.svg`));
 

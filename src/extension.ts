@@ -26,10 +26,13 @@ function setupInterval() {
 	if (interval) {
 		clearInterval(interval);
 	}
-
-	interval = setInterval(() => {
-		fundHandle.updateData()
+	fundHandle.updateData(()=>{
 		provider.refresh();
+	})
+	interval = setInterval(() => {
+		fundHandle.updateData(()=>{
+			provider.refresh();
+		})
 	}, intervalTime * 1000);
 }
 
@@ -58,6 +61,16 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		if (e.affectsConfiguration('fund-watch.showUpdateTime')) {
 			provider.refresh()
+		}
+		if (e.affectsConfiguration('fund-watch.favoriteFunds')) {
+			fundHandle.updateData(()=>{
+				provider.refresh();
+			})
+		}
+		if (e.affectsConfiguration('fund-watch.favoriteIndexs')) {
+			fundHandle.updateData(()=>{
+				provider.refresh();
+			})
 		}
 	});
 

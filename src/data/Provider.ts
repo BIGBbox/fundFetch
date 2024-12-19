@@ -130,7 +130,7 @@ export default class DataProvider implements TreeDataProvider<FundItem> {
         break;
     }
     result.sort((a: FundInfo, b: FundInfo) => {
-      const timeDifference = new Date(a.updateTime.split(" ")[0]).getTime() - new Date(b.updateTime.split(" ")[0]).getTime();
+      const timeDifference = new Date(a.updateTime[0]).getTime() - new Date(b.updateTime[0]).getTime();
       if (timeDifference !== 0) {
         return timeDifference * -1;
       }

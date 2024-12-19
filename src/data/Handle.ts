@@ -28,8 +28,8 @@ export class fundHandle {
       return;
     }
     if (indexIndex != -1) {
-      favoriteFunds.splice(indexIndex, 1)
-      config.update('fund-watch.favoriteIndexs', favoriteFunds, true)
+      favoriteIndexs.splice(indexIndex, 1)
+      config.update('fund-watch.favoriteIndexs', favoriteIndexs, true)
       return;
     }
   }

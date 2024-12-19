@@ -119,7 +119,7 @@ export async function indexApi(fundConfig: string[]): Promise<FundInfo[]> {
 
     }
   })
-  await Promise.allSettled(promises);
+  await Promise.all(promises);
   return results;
 }
 
@@ -169,24 +169,22 @@ export function unique(arr: any[]) {
  * @returns 
  */
 function getUpdateTimeWithMins(timeDate: string, timsMinStr: string) {
-  let showUpdateTime = vscode.workspace.getConfiguration().get('fund-watch.showUpdateTime', 0);
-  let timeStr = '';
-  let minStr = ''
-
+  let minObj = [timeDate, '', '15:00']
   if (timsMinStr.length !== 4) {
-    minStr = "15:00"
+    minObj[2] = "15:00"
   } else {
-    minStr = timsMinStr.slice(0, 2) + ":" + timsMinStr.slice(2);
+    minObj[2] = timsMinStr.slice(0, 2) + ":" + timsMinStr.slice(2);
   }
+  return minObj
+}
 
+export function getTimeStr(timeObj: string[]): string {
+  let showUpdateTime = vscode.workspace.getConfiguration().get('fund-watch.showUpdateTime', 0);
   switch (showUpdateTime) {
     case ShowTimeType.SHOWYMD:
-      timeStr = timeDate
-      break;
+      return `(${timeObj[0]})`
     case ShowTimeType.SHOWYMNHM:
-      timeStr = `${timeDate} ${minStr}`
-      break;
+      return `(${timeObj[0]} ${timeObj[2]})`
   }
-
-  return timeStr
+  return ''
 }
