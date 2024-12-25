@@ -11,3 +11,4 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 
 node_modules/**
+!node_modules/axios/**

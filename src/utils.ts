@@ -1,107 +1,44 @@
 import * as vscode from 'vscode';
-import * as https from 'https'
+import axios from 'axios';
 
 import { FundSplitwords, ShowTimeType } from './data/enum';
 
-const url1 = 'https://fund.10jqka.com.cn/guzhi/chart/v1?module=api&controller=index&action=chartByTradeCode&code={fundCode}&start=0930'
-const url2 = 'https://fund.10jqka.com.cn/quotation/fund_detail/v2/base/{fundCode}'
-const url3 = 'https://fund.10jqka.com.cn/quotation/fund_detail/get?fundCode={fundCode}'
-const url4 = 'https://d.10jqka.com.cn/v4/time/zs_{fundCode}/last.js'
-
-// 请求
-const request = async (url: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      let chunks = ''
-      if (!res) {
-        reject(new Error('网络请求错误!'))
-        return
-      }
-
-      res.on('data', (chunk) => {
-        chunks += chunk.toString('utf8')
-      })
-      res.on('end', () => {
-        resolve(chunks)
-      })
-    })
-  })
-}
-
+/**
+ * 
+ * @param fundConfig 基金代码
+ * @returns 
+ */
 export async function fundApi(fundConfig: string[]): Promise<FundInfo[]> {
   const results: FundInfo[] = []; // 用于存储所有 fundCode 的最终结果
-
   const promises = fundConfig.map(async (fundCode) => {
-    const replacedUrl1 = url1.replace('{fundCode}', fundCode);
-    const replacedUrl2 = url2.replace('{fundCode}', fundCode);
-    const replacedUrl3 = url3.replace('{fundCode}', fundCode);
-
     try {
-      // 请求第一个 URL
-      const res = await request(replacedUrl1);
-      const obj = JSON.parse(res);
-      // console.log('rsp1', JSON.parse(res))
-
-      const fundBaseInfoStr = await request(replacedUrl3);
-      const fundBaseInfoJson = JSON.parse(fundBaseInfoStr);
-      if (obj.data) {
-
-        // console.log('fundBaseInfoJson', fundBaseInfoJson)
-        let prevtradeday = obj.data.prevtradeday.split(",")
-        // console.log('prevtradeday', prevtradeday)
-        const data_now = obj.data.estimate.pop().split(",")
-        results.push({
-          now: data_now[2],
-          name: fundBaseInfoJson.data.name,
-          code: fundBaseInfoJson.data.code,
-          lastClose: prevtradeday[1],
-          changeRate: data_now[1],
-          changeAmount: (data_now[2] - prevtradeday[1]).toFixed(4),
-          updateTime: getUpdateTimeWithMins(obj.data.estimatedate, data_now[0]),
-        });
-      } else {
-        // 如果第一个 URL 返回的数据为 null，尝试请求第二个 URL
-        // console.log(`Fund code ${fundCode}: First URL returned null, trying second URL...`);
-        const res = await request(replacedUrl2);
-        const obj = JSON.parse(res).data;
-        // console.log('obj', JSON.parse(res))
-        if (obj) {
-          results.push({
-            now: obj.handicap?.latestNet,
-            name: obj.simpleName,
-            code: obj.fundCode,
-            lastClose: obj.handicap?.latestNet,
-            changeRate: obj.handicap?.latestRate,
-            changeAmount: '-----',
-            updateTime: getUpdateTimeWithMins(fundBaseInfoJson.data.date, ''),
-          });
-        }
-      }
+      let data = await getAntFundBaseInfo(fundCode)
+      data && results.push(data)
     } catch (error) {
-      console.error(`Error fetching fundCode ${fundCode}:`, error);
+      console.error("API fundApi error fundCode:%s \nerror:%s", fundCode, error)
     }
   });
-
   await Promise.allSettled(promises);
-  // let time = new Date()
-  // console.log('results', results, `time:${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`)
   return results;
 }
 
+
+/**
+ * 
+ * @param fundConfig 指数代码
+ * @returns 
+ */
 export async function indexApi(fundConfig: string[]): Promise<FundInfo[]> {
   const results: FundInfo[] = []; // 用于存储所有 fundCode 的最终结果
   const promises = fundConfig.map(async (fundCode) => {
-    const replacedUrl4 = url4.replace('{fundCode}', fundCode);
-    const rspStr = await request(replacedUrl4);
     try {
-      let s = ""
-      s.slice()
-      const str = rspStr.replace(/.*?\((.*?)\)/, "$1");
+      const response = await axios.get(`https://d.10jqka.com.cn/v4/time/zs_${fundCode}/last.js`);
+      const str = response.data.replace(/.*?\((.*?)\)/, "$1");
       const obj = JSON.parse(str)
       if (obj) {
         let info = obj[`zs_${fundCode}`];
         const data_now = info.data.split(";").pop().split(",");
-        const formattedDate = `${info.dates[0].slice(0, 4)}-${info.dates[0].slice(4, 6)}-${info.dates[0].slice(6)}`;
+        const formattedDate = `${info.dates[0].slice(4, 6)}-${info.dates[0].slice(6)}`;
         results.push({
           now: data_now[1],
           name: info.name,
@@ -113,8 +50,7 @@ export async function indexApi(fundConfig: string[]): Promise<FundInfo[]> {
         });
       }
     } catch (error) {
-      console.error(`Error fetching indexCode ${fundCode}:`, error);
-
+      console.error("API indexApi error indexCode:%s \nerror:%s", fundCode, error)
     }
   })
   await Promise.all(promises);
@@ -127,11 +63,7 @@ export async function indexApi(fundConfig: string[]): Promise<FundInfo[]> {
  * @param length 修改后的字符串长度
  * @param left 原字符串是否靠左边
  */
-export function fillString(
-  source: string,
-  length: number,
-  left = true
-): string {
+export function fillString(source: string, length: number,): string {
   const strWidth = source.length;
   if (strWidth >= length) {
     return source.slice(0, length);
@@ -150,7 +82,7 @@ export function fundNameSimp(fundName: string): string {
   FundSplitwords.forEach((word: string) => {
     if (fundName.includes(word)) {
       const escapedWord = word.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-      newName = fundName.replace(new RegExp(escapedWord, 'g'), '');  // 替换为 '' 即删除该词
+      newName = fundName.replace(new RegExp(escapedWord, 'g'), '');
     }
   })
   return newName
@@ -158,6 +90,19 @@ export function fundNameSimp(fundName: string): string {
 
 export function unique(arr: any[]) {
   return Array.from(new Set(arr))
+}
+
+
+export function getTimeStr(timeObj: string[]): string {
+  let showUpdateTime = vscode.workspace.getConfiguration().get('fund-watch.showUpdateTime', 0);
+  switch (showUpdateTime) {
+    case ShowTimeType.SHOWYMD:
+      return `(${timeObj[0]})`
+    case ShowTimeType.SHOWYMNHM:
+      return `(${timeObj[0]} ${timeObj[2]})`
+    default:
+      return ''
+  }
 }
 
 /**
@@ -176,13 +121,142 @@ function getUpdateTimeWithMins(timeDate: string, timsMinStr: string) {
   return minObj
 }
 
-export function getTimeStr(timeObj: string[]): string {
-  let showUpdateTime = vscode.workspace.getConfiguration().get('fund-watch.showUpdateTime', 0);
-  switch (showUpdateTime) {
-    case ShowTimeType.SHOWYMD:
-      return `(${timeObj[0]})`
-    case ShowTimeType.SHOWYMNHM:
-      return `(${timeObj[0]} ${timeObj[2]})`
+/**
+ * 获取当前以及下一天的年月日
+ * @returns 
+ */
+function getCurrentAndNextDay() {
+  const currentDate = new Date();
+  const formatDate = (date: any) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从 0 开始
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const nextDate = new Date(currentDate);
+  nextDate.setDate(currentDate.getDate() + 1); // 设置为下一天
+
+  return {
+    today: formatDate(currentDate),
+    tomorrow: formatDate(nextDate),
+  };
+};
+
+/**
+ * 时间戳转时间字符串
+ * @param timestamp 时间戳
+ * @returns 时间字符串
+ */
+function formatTimestamp(timestamp: number): string[] {
+  const date = new Date(timestamp);
+  // 格式化为字符串，例如 "YYYY-MM-DD HH:mm:ss"
+  // const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  // const seconds = String(date.getSeconds()).padStart(2, '0');
+  return [`${month}-${day}`, '', `${hours}:${minutes}`];
+}
+
+
+async function getAntFundBaseInfo(fundCode: string) {
+  //基金展示数据结构
+  let res: FundInfo = {
+    name: "",
+    code: "",
+    now: "",
+    lastClose: "",
+    changeRate: "",
+    changeAmount: "",
+    updateTime: []
   }
-  return ''
+  try {
+    const response = await axios.get(`https://www.fund123.cn/matiaria?fundCode=${fundCode}`)
+    if (response['status'] !== 200) {
+      console.error(`fundBaseInfo get fail,fundCode:${fundCode}`)
+      return res;
+    }
+
+    let ctoken = '';
+    let spanner = '';
+    const setCookie = response?.headers?.['set-cookie'];
+    Array.isArray(setCookie) && setCookie.forEach((cookie: any) => {
+      if (cookie.startsWith('ctoken=')) {
+        ctoken = cookie.match(/ctoken=([^;]+)/)[1];
+      }
+      if (cookie.startsWith('spanner=')) {
+        spanner = cookie.match(/spanner=([^;]+)/)[1];
+      }
+    });
+
+    const cookie = `receive-cookie-deprecation=1;ctoken=${ctoken}; spanner=${spanner}`
+    const regex = /window\.context\s*=\s*(\{.*?\});/s;
+    const match = response['data'].match(regex);
+
+    if (match) {
+      const contentValue = JSON.parse(match[1]) as antFundDate;
+      res.name = contentValue.materialInfo.fundBrief.fundNameAbbr;
+      res.code = contentValue.materialInfo.fundBrief.fundCode;
+      res.now = contentValue.materialInfo.titleInfo.netValue;
+      res.changeRate = contentValue.materialInfo.titleInfo.dayOfGrowth;
+      res.updateTime = [contentValue.materialInfo.titleInfo.netValueDate, '', '15:00'];
+
+      let fundData = await getCurAntFundData({
+        csrf: contentValue.csrf,
+        productId: contentValue.materialInfo.productId,
+        fundCode: contentValue.materialInfo.fundCode,
+        cookie: cookie
+      })
+      if (fundData) {
+        res.now = fundData.curValue;
+        res.changeRate = +fundData.curGroth * 100 + '';
+        res.updateTime = formatTimestamp(+fundData.curTimeStamp)
+      }
+      return res;
+    }
+  } catch (error) {
+    console.error("API getAntFundBaseInfo error fundCode:%s \nerror:%s", fundCode, error)
+    return res;
+  }
+
+}
+
+/**获取当前最新数据 */
+async function getCurAntFundData(params: antFetchFundDate) {
+  const date = getCurrentAndNextDay();
+  try {
+    const response = await axios.post(
+      `https://www.fund123.cn/api/fund/queryFundEstimateIntraday?_csrf=${params.csrf}`,
+      {
+        startTime: date.today,
+        endTime: date.tomorrow,
+        limit: 200,
+        productId: params.productId,
+        format: true,
+        source: 'WEALTHBFFWEB',
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Referer': `https://www.fund123.cn/matiaria?fundCode=${params.fundCode}`,
+          'Cookie': params.cookie,
+        },
+      }
+    );
+
+    const data = response.data as antFundEstimateIntraday;
+    const curFundData = data.list.pop();
+    if (curFundData) {
+      return {
+        curValue: curFundData?.forecastNetValue || "0",
+        curGroth: curFundData?.forecastGrowth || "0",
+        curTimeStamp: curFundData?.time || "0"
+      };
+    }
+  } catch (error) {
+    console.error("API getCurAntFundData error params:%s \nerror:%s", params, error)
+    return;
+  }
 }

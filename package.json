@@ -2,7 +2,7 @@
   "name": "fundwatch",
   "displayName": "fundWatch",
   "description": "查看基金/指数实时涨跌幅",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "BIGBbox",
   "publisher": "BIGBbox",
   "license": "MIT",
@@ -152,6 +152,7 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
+    "axios": "^1.7.9",
     "vsce": "^2.15.0"
   }
 }

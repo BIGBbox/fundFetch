@@ -1,9 +1,7 @@
 import { TreeItem, TreeItemCollapsibleState, ExtensionContext, Uri } from 'vscode'
 import { fillString, fundNameSimp, getTimeStr } from '../utils'
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { fundHandle } from './Handle';
-import { ShowTimeType } from './enum';
 export default class FundItem extends TreeItem {
   info: FundInfo | undefined
 
@@ -42,8 +40,8 @@ export default class FundItem extends TreeItem {
       `--------------------------`,
       `单位净值:　　　　${info.now}`,
       `涨跌幅:　　　　　${info.changeRate}%`,
-      `涨跌额:　　　　　${info.changeAmount}`,
-      `昨收:　　　　　　${info.lastClose}`,
+      // `涨跌额:　　　　　${info.changeAmount}`,
+      // `昨收:　　　　　　${info.lastClose}`,
     ]
 
     this.info = info
