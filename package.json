@@ -2,7 +2,7 @@
   "name": "fundwatch",
   "displayName": "fundWatch",
   "description": "查看基金/指数实时涨跌幅",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": "BIGBbox",
   "publisher": "BIGBbox",
   "license": "MIT",

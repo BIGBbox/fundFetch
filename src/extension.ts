@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { commands, window, workspace } from 'vscode';
-import Provider, { tagItem } from './data/Provider';
+import Provider, { ItemType, tagItem } from './data/Provider';
 import { fundHandle } from './data/Handle';
 
 // This method is called when your extension is activated
@@ -26,14 +26,32 @@ function setupInterval() {
 	if (interval) {
 		clearInterval(interval);
 	}
-	fundHandle.updateData(()=>{
+	fundHandle.updateData(() => {
 		provider.refresh();
 	})
 	interval = setInterval(() => {
-		fundHandle.updateData(()=>{
+		fundHandle.updateData(() => {
 			provider.refresh();
 		})
 	}, intervalTime * 1000);
+}
+
+function openWedSite(param: string[]) {
+	const _openWebsite = (url: string) => {
+		const uri = vscode.Uri.parse(url);
+		vscode.env.openExternal(uri).then(
+			() => vscode.window.showInformationMessage(`Opened: ${url}`),
+			(err) => vscode.window.showErrorMessage(`Failed to open ${url}: ${err}`)
+		);
+	}
+	switch (param[0]) {
+		case ItemType.FUND:
+			_openWebsite(`https://www.fund123.cn/matiaria?fundCode=${param[1]}`)
+			break;
+		case ItemType.INDEX:
+			_openWebsite(`https://quote.eastmoney.com/center/hszs.html`)
+			break;
+	}
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -63,12 +81,12 @@ export function activate(context: vscode.ExtensionContext) {
 			provider.refresh()
 		}
 		if (e.affectsConfiguration('fund-watch.favoriteFunds')) {
-			fundHandle.updateData(()=>{
+			fundHandle.updateData(() => {
 				provider.refresh();
 			})
 		}
 		if (e.affectsConfiguration('fund-watch.favoriteIndexs')) {
-			fundHandle.updateData(()=>{
+			fundHandle.updateData(() => {
 				provider.refresh();
 			})
 		}
@@ -92,12 +110,14 @@ export function activate(context: vscode.ExtensionContext) {
 			fundHandle.removeConfig(item.info.code)
 			provider.refresh()
 		}),
-		commands.registerCommand('fund.item.click', (fund) => {
+		commands.registerCommand('fund.item.click', (fundType: string, fundInfo: string) => {
 			// const { code } = fund
-			console.log('click item', fund)
+			console.log('click item', fundType, fundInfo)
+			openWedSite(fundInfo.split("_"))
 		})
 	)
 }
+
 
 // This method is called when your extension is deactivated
 export function deactivate() {

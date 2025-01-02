@@ -137,7 +137,7 @@ export default class DataProvider implements TreeDataProvider<FundItem> {
       return (+a.changeRate - +b.changeRate) * this.order;
     })
     for (let i = 0; i < result.length; i++) {
-      elementList.push(new tagItem("", result[i]))
+      elementList.push(new tagItem(`${type}_${result[i].code}`, result[i]))
     }
   }
 }
@@ -153,7 +153,7 @@ export class tagItem extends FundItem {
     this.command = {
       command: 'fund.item.click',
       title: 'click Item',
-      arguments: [ItemTypeEng[tag]],
+      arguments: [[ItemTypeEng[tag]],tag],
     };
   }
 }

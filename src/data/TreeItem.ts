@@ -38,8 +38,8 @@ export default class FundItem extends TreeItem {
       `代码:　${info.code}`,
       `名称:　${sliceName}`,
       `--------------------------`,
-      `单位净值:　　　　${info.now}`,
-      `涨跌幅:　　　　　${info.changeRate}%`,
+      `单位净值:　　　　${Number(info.now).toFixed(4)}`,
+      `涨跌幅:　　　　　${Number(info.changeRate).toFixed(2)}%`,
       // `涨跌额:　　　　　${info.changeAmount}`,
       // `昨收:　　　　　　${info.lastClose}`,
     ]
